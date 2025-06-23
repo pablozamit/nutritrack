@@ -1,0 +1,107 @@
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { trpc, trpcClient } from "@/lib/trpc";
+
+export const unstable_settings = {
+  // Ensure that reloading on `/modal` keeps a back button present.
+  initialRouteName: "(tabs)",
+};
+
+// Create a client
+const queryClient = new QueryClient();
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  const [loaded, error] = useFonts({
+    ...FontAwesome.font,
+  });
+
+  useEffect(() => {
+    if (error) {
+      console.error(error);
+      throw error;
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null;
+  }
+
+  return <RootLayoutNav />;
+}
+
+function RootLayoutNav() {
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          <Stack.Screen 
+            name="auth/login" 
+            options={{ 
+              title: "Iniciar Sesión",
+              headerShown: true,
+              presentation: "card"
+            }} 
+          />
+          <Stack.Screen 
+            name="auth/register" 
+            options={{ 
+              title: "Crear Cuenta",
+              headerShown: true,
+              presentation: "card"
+            }} 
+          />
+          <Stack.Screen 
+            name="supplement/[id]" 
+            options={{ 
+              title: "Detalles del Suplemento",
+              headerShown: true
+            }} 
+          />
+          <Stack.Screen 
+            name="supplement/add" 
+            options={{ 
+              title: "Añadir Suplemento",
+              headerShown: true
+            }} 
+          />
+          <Stack.Screen 
+            name="supplement/schedule" 
+            options={{ 
+              title: "Programación",
+              headerShown: true
+            }} 
+          />
+          <Stack.Screen 
+            name="supplement/review" 
+            options={{ 
+              title: "Escribir Reseña",
+              headerShown: true
+            }} 
+          />
+          <Stack.Screen 
+            name="supplement/replenish" 
+            options={{ 
+              title: "Reponer Suplemento",
+              headerShown: true
+            }} 
+          />
+        </Stack>
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}

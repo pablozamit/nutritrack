@@ -72,6 +72,11 @@ export default function SupplementDetailScreen() {
       <Text style={styles.info}>Días: {supplement.days.join(', ')}</Text>
       <Text style={styles.info}>Cantidad: {supplement.quantity}</Text>
       <Button title="Eliminar" onPress={handleDelete} style={styles.delete} />
+      <Button
+        title="Editar"
+        onPress={() => router.push(`/supplement/edit?id=${id}`)}
+        style={styles.delete}
+      />
 
       <Button
         title={userReview ? 'Editar Reseña' : 'Añadir Reseña'}

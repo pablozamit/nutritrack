@@ -3,6 +3,8 @@ import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/lib/trpc";
 import { useAuthStore } from "@/store/auth-store";
@@ -35,6 +37,20 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    async function requestPermission() {
+      const asked = await AsyncStorage.getItem('notification_permission');
+      if (!asked) {
+        await AsyncStorage.setItem('notification_permission', '1');
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+      }
+    }
+    requestPermission();
+  }, []);
 
   if (!loaded) {
     return null;
@@ -86,12 +102,19 @@ function RootLayoutNav() {
               headerShown: true
             }} 
           />
-          <Stack.Screen 
-            name="supplement/add" 
-            options={{ 
+          <Stack.Screen
+            name="supplement/add"
+            options={{
               title: "Añadir Suplemento",
               headerShown: true
-            }} 
+            }}
+          />
+          <Stack.Screen
+            name="supplement/edit"
+            options={{
+              title: "Editar Suplemento",
+              headerShown: true
+            }}
           />
           <Stack.Screen 
             name="supplement/schedule" 

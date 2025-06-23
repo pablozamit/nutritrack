@@ -12,13 +12,14 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Star } from "lucide-react-native";
 import { useCommunityStore } from "@/store/community-store";
 import { colors } from "@/constants/colors";
-import { supplements } from "@/mocks/supplements";
+import { useSupplementStore } from "@/store/supplement-store";
 import Button from "@/components/Button";
 
 export default function ReviewScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { addReview } = useCommunityStore();
+  const { userSupplements } = useSupplementStore();
   
   const [supplement, setSupplement] = useState<any>(null);
   const [rating, setRating] = useState(0);
@@ -27,10 +28,10 @@ export default function ReviewScreen() {
   
   useEffect(() => {
     if (id) {
-      const foundSupplement = supplements.find(s => s.id === id);
-      setSupplement(foundSupplement);
+      const found = userSupplements.find(s => s.id === id);
+      setSupplement(found);
     }
-  }, [id]);
+  }, [id, userSupplements]);
   
   const handleRatingChange = (value: number) => {
     setRating(value);

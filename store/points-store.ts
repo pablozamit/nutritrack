@@ -17,6 +17,7 @@ import {
   orderBy,
   limit as limitDocs,
   where,
+  addDoc,
 } from "firebase/firestore";
 import { User } from "@/types";
 
@@ -27,7 +28,7 @@ function formatDate(date: Date) {
 interface PointsState {
   points: number;
   lastAdherenceDate: string | null;
-  addPoints: (value: number) => Promise<void>;
+  addPoints: (value: number, reason?: string) => Promise<void>;
   processDailyAdherence: () => Promise<void>;
   fetchPoints: () => Promise<void>;
   getRanking: (limit?: number) => Promise<User[]>;
@@ -40,7 +41,7 @@ export const usePointsStore = create<PointsState>()(
       points: 0,
       lastAdherenceDate: null,
 
-      addPoints: async (value) => {
+      addPoints: async (value, reason = 'other') => {
         const user = useAuthStore.getState().user;
         if (!user) return;
         const metaRef = doc(db, `users/${user.id}/meta`);
@@ -51,6 +52,11 @@ export const usePointsStore = create<PointsState>()(
         set({ points });
         useAuthStore.getState().updateUser({ points });
         await updateDoc(doc(db, "users", user.id), { points });
+        await addDoc(collection(db, `users/${user.id}/pointsHistory`), {
+          value,
+          reason,
+          createdAt: new Date().toISOString(),
+        });
       },
 
       fetchPoints: async () => {
@@ -76,14 +82,14 @@ export const usePointsStore = create<PointsState>()(
         });
         if (!allTaken) return;
 
-        await get().addPoints(10);
+        await get().addPoints(10, 'daily');
         const yesterday = formatDate(new Date(Date.now() - 86400000));
         const currentStreak =
           get().lastAdherenceDate === yesterday ? (user.streak || 0) + 1 : 1;
         useAuthStore.getState().updateUser({ streak: currentStreak });
         await updateDoc(doc(db, "users", user.id), { streak: currentStreak });
         if (currentStreak % 3 === 0) {
-          await get().addPoints(5);
+          await get().addPoints(5, 'streak');
         }
         set({ lastAdherenceDate: today });
       },

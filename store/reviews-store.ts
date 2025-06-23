@@ -60,7 +60,7 @@ export const useReviewsStore = create<ReviewsState>((set, get) => ({
         comment: data.comment,
         createdAt: new Date().toISOString(),
       });
-      await usePointsStore.getState().addPoints(10);
+      await usePointsStore.getState().addPoints(10, 'review');
     } else {
       const id = snap.docs[0].id;
       await updateDoc(doc(db, `supplements/${supplementId}/reviews/${id}`), {

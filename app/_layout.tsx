@@ -145,6 +145,13 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
+            name="resumen"
+            options={{
+              title: "Resumen",
+              headerShown: true
+            }}
+          />
+          <Stack.Screen
             name="admin-panel"
             options={{
               title: "Admin",

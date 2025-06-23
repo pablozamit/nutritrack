@@ -23,6 +23,16 @@ export type Supplement = {
   reviewCount: number;
 };
 
+export type CatalogSupplement = {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  objectives: string[];
+  priceEstimate: number;
+  baseScore: number; // 0-10
+};
+
 export type UserSupplement = {
   id: string;
   name: string;
@@ -70,4 +80,4 @@ export type Goal = {
   supplements: string[]; // Array de IDs de suplementos
 };
 
-export type RecommendedSupplement = Supplement & { reason: string };
+export type RecommendedSupplement = CatalogSupplement & { reason: string };

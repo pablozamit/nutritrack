@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { colors } from '@/constants/colors';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { getSuggestedSupplements, getSuggestedSupplementsAI } from '@/lib/recommendation';
 import { RecommendedSupplement } from '@/types';
+import { useCatalogStore } from '@/store/catalog-store';
 import { useSupplementStore } from '@/store/supplement-store';
 
 export default function DiscoverScreen() {
@@ -13,13 +14,19 @@ export default function DiscoverScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const { addSupplement, userSupplements } = useSupplementStore();
+  const { catalog, subscribe } = useCatalogStore();
+
+  useEffect(() => {
+    const unsub = subscribe();
+    return unsub;
+  }, []);
 
   const handleSearch = async () => {
     setMessage('');
-    let list = getSuggestedSupplements(query);
+    let list = getSuggestedSupplements(catalog, query);
     if (list.length === 0) {
       setLoading(true);
-      list = await getSuggestedSupplementsAI(query);
+      list = await getSuggestedSupplementsAI(catalog, query);
       setLoading(false);
     }
     if (list.length === 0) {

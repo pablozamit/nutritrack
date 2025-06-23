@@ -4,6 +4,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "@/types";
 import { auth } from "@/lib/firebase";
 import { useSupplementStore } from "./supplement-store";
+import { usePointsStore } from "./points-store";
+import { db } from "@/lib/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -35,16 +38,26 @@ export const useAuthStore = create<AuthState>()(
         try {
           const cred = await signInWithEmailAndPassword(auth, email, password);
           const fbUser = cred.user;
-          const user: User = {
-            id: fbUser.uid,
-            username: fbUser.displayName || email,
-            email: fbUser.email || email,
-            points: 0,
-            streak: 0,
-            joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
-          };
+          const userRef = doc(db, "users", fbUser.uid);
+          const snap = await getDoc(userRef);
+          let user: User;
+          if (snap.exists()) {
+            user = { ...(snap.data() as User), id: fbUser.uid };
+          } else {
+            user = {
+              id: fbUser.uid,
+              username: fbUser.displayName || email,
+              email: fbUser.email || email,
+              points: 0,
+              streak: 0,
+              joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
+            };
+            await setDoc(userRef, user);
+            await setDoc(doc(db, `users/${fbUser.uid}/meta`), { points: 0 }, { merge: true });
+          }
           set({ user, isAuthenticated: true, isLoading: false });
           await useSupplementStore.getState().getUserSupplements(user.id);
+          await usePointsStore.getState().fetchPoints();
         } catch (e: any) {
           set({ error: e.message, isLoading: false });
         }
@@ -65,6 +78,8 @@ export const useAuthStore = create<AuthState>()(
             streak: 0,
             joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
           };
+          await setDoc(doc(db, "users", fbUser.uid), user);
+          await setDoc(doc(db, `users/${fbUser.uid}/meta`), { points: 0 }, { merge: true });
           set({ user, isAuthenticated: true, isLoading: false });
           await useSupplementStore.getState().getUserSupplements(user.id);
         } catch (e: any) {
@@ -80,6 +95,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user, isAuthenticated: !!user });
         if (user) {
           useSupplementStore.getState().getUserSupplements(user.id);
+          usePointsStore.getState().fetchPoints();
         } else {
           useSupplementStore.setState({ userSupplements: [] });
         }
@@ -87,7 +103,9 @@ export const useAuthStore = create<AuthState>()(
       updateUser: (userData) => {
         const currentUser = get().user;
         if (currentUser) {
-          set({ user: { ...currentUser, ...userData } });
+          const updated = { ...currentUser, ...userData };
+          set({ user: updated });
+          setDoc(doc(db, "users", currentUser.id), updated, { merge: true });
         }
       }
     }),

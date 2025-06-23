@@ -107,12 +107,19 @@ function RootLayoutNav() {
               headerShown: true
             }} 
           />
-          <Stack.Screen 
-            name="supplement/replenish" 
-            options={{ 
+          <Stack.Screen
+            name="supplement/replenish"
+            options={{
               title: "Reponer Suplemento",
               headerShown: true
-            }} 
+            }}
+          />
+          <Stack.Screen
+            name="ranking"
+            options={{
+              title: "Ranking",
+              headerShown: true
+            }}
           />
         </Stack>
       </QueryClientProvider>

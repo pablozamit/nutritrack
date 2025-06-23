@@ -14,28 +14,29 @@ import { useAuthStore } from "@/store/auth-store";
 import { colors } from "@/constants/colors";
 import UserRankItem from "@/components/UserRankItem";
 import ReviewItem from "@/components/ReviewItem";
+import { User } from "@/types";
 
 export default function CommunityScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { reviews, getTopUsers } = useCommunityStore();
-  
-  const topUsers = getTopUsers(5);
-  const recentReviews = [...reviews].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  ).slice(0, 5);
-  
-  const getCurrentUserRank = () => {
+  const [topUsers, setTopUsers] = React.useState<User[]>([]);
+
+  React.useEffect(() => {
+    getTopUsers(5).then(setTopUsers);
+  }, []);
+  const recentReviews = [...reviews]
+    .sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, 5);
+
+  const currentUserRank = React.useMemo(() => {
     if (!user) return null;
-    
-    const allUsers = getTopUsers();
-    const userIndex = allUsers.findIndex(u => u.id === user.id);
-    
-    if (userIndex === -1) return null;
-    return userIndex + 1;
-  };
-  
-  const currentUserRank = getCurrentUserRank();
+    const idx = topUsers.findIndex((u) => u.id === user.id);
+    if (idx === -1) return null;
+    return idx + 1;
+  }, [topUsers, user]);
   
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -89,7 +90,7 @@ export default function CommunityScreen() {
           <Text style={styles.sectionTitle}>Clasificación</Text>
         </View>
         
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/ranking")}>
           <Text style={styles.seeAllText}>Ver Todo</Text>
         </TouchableOpacity>
       </View>

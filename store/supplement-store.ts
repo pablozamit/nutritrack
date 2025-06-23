@@ -2,9 +2,10 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserSupplement } from "@/types";
-import { collection, addDoc, deleteDoc, getDocs, onSnapshot, doc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, getDocs, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firestore';
 import { useAuthStore } from './auth-store';
+import { usePointsStore } from './points-store';
 
 interface SupplementState {
   userSupplements: UserSupplement[];
@@ -14,6 +15,7 @@ interface SupplementState {
   deleteSupplement: (id: string) => Promise<void>;
   getUserSupplements: (uid: string) => Promise<void>;
   subscribeToUserSupplements: (uid: string) => () => void;
+  markSupplementTaken: (id: string) => Promise<void>;
 }
 
 export const useSupplementStore = create<SupplementState>()(
@@ -30,9 +32,10 @@ export const useSupplementStore = create<SupplementState>()(
         const docRef = await addDoc(collection(db, `users/${user.id}/supplements`), {
           ...supplement,
           createdAt: new Date().toISOString(),
+          lastTakenAt: [],
         });
         set(state => ({
-          userSupplements: [...state.userSupplements, { ...supplement, id: docRef.id, createdAt: new Date().toISOString() }]
+          userSupplements: [...state.userSupplements, { ...supplement, id: docRef.id, createdAt: new Date().toISOString(), lastTakenAt: [] }]
         }));
       },
 
@@ -57,6 +60,23 @@ export const useSupplementStore = create<SupplementState>()(
           set({ userSupplements: data });
         });
         return unsub;
+      },
+
+      markSupplementTaken: async (id) => {
+        const user = useAuthStore.getState().user;
+        if (!user) return;
+        const timestamp = new Date().toISOString();
+        await updateDoc(doc(db, `users/${user.id}/supplements/${id}`), {
+          lastTakenAt: arrayUnion(timestamp),
+        });
+        set((state) => ({
+          userSupplements: state.userSupplements.map((s) =>
+            s.id === id
+              ? { ...s, lastTakenAt: [...(s.lastTakenAt || []), timestamp] }
+              : s
+          ),
+        }));
+        await usePointsStore.getState().processDailyAdherence();
       }
     }),
     {

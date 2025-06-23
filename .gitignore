@@ -1,6 +1,6 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# → Basado en React Native + Expo + Vercel + Node.js best practices
 
-# dependencies
+# Node modules
 node_modules/
 
 # Expo
@@ -9,29 +9,44 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
-*.orig.*
+# Metro bundler
+.metro/
+.metro-health-check*
+
+# iOS / Android build artifacts
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.orig.*
 
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun.lockb
 
 # macOS
 .DS_Store
-*.pem
 
-# local env files
-.env*.local
+# VSCode
+.vscode/
 
-# typescript
+# Environment config
+.env
+.env.*.local
+.env.local
+
+# TypeScript
 *.tsbuildinfo
-.vercel
+
+# Vercel / Netlify / Firebase
+.vercel/
+.firebase/
+.netlify/
+
+# Output folders
+build/
+output/
+coverage/

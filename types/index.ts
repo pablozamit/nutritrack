@@ -30,6 +30,7 @@ export type UserSupplement = {
   time: string;
   quantity: number;
   createdAt: string;
+  lastTakenAt?: string[];
 };
 
 export type Schedule = {

@@ -81,3 +81,11 @@ export type Goal = {
 };
 
 export type RecommendedSupplement = CatalogSupplement & { reason: string };
+
+export type FeedEntry = {
+  id: string;
+  type: "review" | "added" | "ranking";
+  timestamp: string;
+  data: any;
+  uid: string;
+};

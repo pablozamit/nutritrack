@@ -20,7 +20,12 @@ interface CommunityState {
   isLoading: boolean;
   error: string | null;
 
-  addReview: (supplementId: string, rating: number, comment: string) => Promise<void>;
+  addReview: (
+    supplementId: string,
+    rating: number,
+    comment: string,
+    supplementName: string,
+  ) => Promise<void>;
   updateReview: (reviewId: string, rating: number, comment: string) => void;
   deleteReview: (reviewId: string) => void;
   getReviewsBySupplementId: (supplementId: string) => Review[];
@@ -36,47 +41,49 @@ export const useCommunityStore = create<CommunityState>()(
       isLoading: false,
       error: null,
 
-      addReview: async (supplementId, rating, comment) => {
+      addReview: async (supplementId, rating, comment, supplementName) => {
         await useReviewsStore
           .getState()
-          .submitReview(supplementId, { rating, comment });
+          .submitReview(supplementId, { rating, comment, supplementName });
       },
-      
+
       updateReview: () => {},
       deleteReview: () => {},
 
-        loadReviews: async () => {
-          const q = query(collectionGroup(db, "reviews"));
-          const snap = await getDocs(q);
-          const data = snap.docs.map((d) => ({
-            ...(d.data() as Omit<Review, "id" | "supplementId">),
-            id: d.id,
-            supplementId: d.ref.parent.parent?.id || "",
-          }));
-          set({ reviews: data });
-        },
-      
-      getReviewsBySupplementId: (supplementId) => {
-        return get().reviews.filter(review => review.supplementId === supplementId);
+      loadReviews: async () => {
+        const q = query(collectionGroup(db, "reviews"));
+        const snap = await getDocs(q);
+        const data = snap.docs.map((d) => ({
+          ...(d.data() as Omit<Review, "id" | "supplementId">),
+          id: d.id,
+          supplementId: d.ref.parent.parent?.id || "",
+        }));
+        set({ reviews: data });
       },
-      
-        getReviewsByUserId: (userId) => {
-          return get().reviews.filter(review => review.uid === userId);
-        },
-      
+
+      getReviewsBySupplementId: (supplementId) => {
+        return get().reviews.filter(
+          (review) => review.supplementId === supplementId,
+        );
+      },
+
+      getReviewsByUserId: (userId) => {
+        return get().reviews.filter((review) => review.uid === userId);
+      },
+
       getTopUsers: async (limit = 10) => {
         const q = query(
           collection(db, "users"),
           orderBy("points", "desc"),
-          limitDocs(limit)
+          limitDocs(limit),
         );
         const snap = await getDocs(q);
         return snap.docs.map((d) => ({ ...(d.data() as User), id: d.id }));
-      }
+      },
     }),
     {
       name: "community-storage",
-      storage: createJSONStorage(() => AsyncStorage)
-    }
-  )
+      storage: createJSONStorage(() => AsyncStorage),
+    },
+  ),
 );

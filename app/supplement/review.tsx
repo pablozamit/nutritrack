@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Star } from "lucide-react-native";
@@ -19,15 +19,16 @@ import Button from "@/components/Button";
 export default function ReviewScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { submitReview, deleteReview, reviews, subscribeToReviews } = useReviewsStore();
+  const { submitReview, deleteReview, reviews, subscribeToReviews } =
+    useReviewsStore();
   const { user } = useAuthStore();
   const { userSupplements } = useSupplementStore();
-  
+
   const [supplement, setSupplement] = useState<any>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [commentError, setCommentError] = useState("");
-  
+
   useEffect(() => {
     if (!id) return;
     const unsub = subscribeToReviews(id as string);
@@ -45,19 +46,19 @@ export default function ReviewScreen() {
       setComment(userReview.comment);
     }
   }, [userReview]);
-  
+
   const handleRatingChange = (value: number) => {
     setRating(value);
   };
-  
+
   const validateInputs = () => {
     let isValid = true;
-    
+
     if (rating === 0) {
       Alert.alert("Error", "Por favor selecciona una valoración");
       isValid = false;
     }
-    
+
     if (!comment.trim()) {
       setCommentError("Por favor escribe un comentario");
       isValid = false;
@@ -67,14 +68,18 @@ export default function ReviewScreen() {
     } else {
       setCommentError("");
     }
-    
+
     return isValid;
   };
-  
+
   const handleSubmit = async () => {
     if (!validateInputs()) return;
 
-    await submitReview(id as string, { rating, comment });
+    await submitReview(id as string, {
+      rating,
+      comment,
+      supplementName: supplement.name,
+    });
 
     Alert.alert(
       userReview ? "Reseña Actualizada" : "Reseña Enviada",
@@ -84,7 +89,7 @@ export default function ReviewScreen() {
           text: "OK",
           onPress: () => router.back(),
         },
-      ]
+      ],
     );
   };
 
@@ -94,59 +99,61 @@ export default function ReviewScreen() {
       { text: "OK", onPress: () => router.back() },
     ]);
   };
-  
+
   const renderStars = () => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
-        <TouchableOpacity
-          key={i}
-          onPress={() => handleRatingChange(i)}
-        >
+        <TouchableOpacity key={i} onPress={() => handleRatingChange(i)}>
           <Star
             size={36}
             color={colors.accent}
             fill={i <= rating ? colors.accent : "none"}
             style={styles.star}
           />
-        </TouchableOpacity>
+        </TouchableOpacity>,
       );
     }
     return <View style={styles.starsContainer}>{stars}</View>;
   };
-  
+
   if (!supplement) {
     return (
       <View style={styles.container}>
         <Text style={styles.notFoundText}>Suplemento no encontrado</Text>
-        <Button 
-          title="Volver" 
-          onPress={() => router.back()} 
+        <Button
+          title="Volver"
+          onPress={() => router.back()}
           style={styles.backButton}
         />
       </View>
     );
   }
-  
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Escribir una Reseña</Text>
       </View>
-      
+
       <View style={styles.supplementInfo}>
         <Text style={styles.supplementName}>{supplement.name}</Text>
         <Text style={styles.supplementCategory}>{supplement.category}</Text>
       </View>
-      
+
       <View style={styles.ratingContainer}>
         <Text style={styles.ratingTitle}>Tu Valoración</Text>
         {renderStars()}
         <Text style={styles.ratingText}>
-          {rating === 0 ? "Toca para valorar" : `${rating} estrella${rating !== 1 ? "s" : ""}`}
+          {rating === 0
+            ? "Toca para valorar"
+            : `${rating} estrella${rating !== 1 ? "s" : ""}`}
         </Text>
       </View>
-      
+
       <View style={styles.commentContainer}>
         <Text style={styles.commentTitle}>Tu Reseña</Text>
         <TextInput
@@ -166,7 +173,7 @@ export default function ReviewScreen() {
           </Text>
         )}
       </View>
-      
+
       <View style={styles.actionButtons}>
         <Button
           title="Cancelar"

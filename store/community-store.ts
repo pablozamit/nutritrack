@@ -4,9 +4,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Review, User } from "@/types";
 import { useAuthStore } from "./auth-store";
 import { usePointsStore } from "./points-store";
+import { useReviewsStore } from "./reviews-store";
 import {
   collection,
-  addDoc,
+  collectionGroup,
   getDocs,
   query,
   orderBy,
@@ -36,60 +37,32 @@ export const useCommunityStore = create<CommunityState>()(
       error: null,
 
       addReview: async (supplementId, rating, comment) => {
-        const user = useAuthStore.getState().user;
-        if (!user) {
-          set({ error: "Usuario no autenticado" });
-          return;
-        }
-
-        const newReview: Omit<Review, "id"> = {
-          userId: user.id,
-          username: user.username,
-          supplementId,
-          rating,
-          comment,
-          createdAt: new Date().toISOString(),
-        };
-
-        const docRef = await addDoc(collection(db, "reviews"), newReview);
-
-        set((state) => ({
-          reviews: [...state.reviews, { ...newReview, id: docRef.id }],
-        }));
-
-        // Añadir puntos por dejar una reseña
-        await usePointsStore.getState().addPoints(10);
+        await useReviewsStore
+          .getState()
+          .submitReview(supplementId, { rating, comment });
       },
       
-      updateReview: (reviewId, rating, comment) => {
-        set(state => ({
-          reviews: state.reviews.map(review => 
-            review.id === reviewId 
-              ? { ...review, rating, comment } 
-              : review
-          )
-        }));
-      },
-      
-      deleteReview: (reviewId) => {
-        set(state => ({
-          reviews: state.reviews.filter(review => review.id !== reviewId)
-        }));
-      },
+      updateReview: () => {},
+      deleteReview: () => {},
 
-      loadReviews: async () => {
-        const snap = await getDocs(collection(db, "reviews"));
-        const data = snap.docs.map((d) => ({ ...(d.data() as Review), id: d.id }));
-        set({ reviews: data });
-      },
+        loadReviews: async () => {
+          const q = query(collectionGroup(db, "reviews"));
+          const snap = await getDocs(q);
+          const data = snap.docs.map((d) => ({
+            ...(d.data() as Omit<Review, "id" | "supplementId">),
+            id: d.id,
+            supplementId: d.ref.parent.parent?.id || "",
+          }));
+          set({ reviews: data });
+        },
       
       getReviewsBySupplementId: (supplementId) => {
         return get().reviews.filter(review => review.supplementId === supplementId);
       },
       
-      getReviewsByUserId: (userId) => {
-        return get().reviews.filter(review => review.userId === userId);
-      },
+        getReviewsByUserId: (userId) => {
+          return get().reviews.filter(review => review.uid === userId);
+        },
       
       getTopUsers: async (limit = 10) => {
         const q = query(

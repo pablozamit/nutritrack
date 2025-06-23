@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Star } from "lucide-react-native";
-import { useCommunityStore } from "@/store/community-store";
+import { useReviewsStore } from "@/store/reviews-store";
+import { useAuthStore } from "@/store/auth-store";
 import { colors } from "@/constants/colors";
 import { useSupplementStore } from "@/store/supplement-store";
 import Button from "@/components/Button";
@@ -18,7 +19,8 @@ import Button from "@/components/Button";
 export default function ReviewScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { addReview } = useCommunityStore();
+  const { submitReview, deleteReview, reviews, subscribeToReviews } = useReviewsStore();
+  const { user } = useAuthStore();
   const { userSupplements } = useSupplementStore();
   
   const [supplement, setSupplement] = useState<any>(null);
@@ -27,11 +29,22 @@ export default function ReviewScreen() {
   const [commentError, setCommentError] = useState("");
   
   useEffect(() => {
-    if (id) {
-      const found = userSupplements.find(s => s.id === id);
-      setSupplement(found);
-    }
+    if (!id) return;
+    const unsub = subscribeToReviews(id as string);
+    const found = userSupplements.find((s) => s.id === id);
+    setSupplement(found);
+    return unsub;
   }, [id, userSupplements]);
+
+  const supplementReviews = reviews[id as string] || [];
+  const userReview = supplementReviews.find((r) => r.uid === user?.id);
+
+  useEffect(() => {
+    if (userReview) {
+      setRating(userReview.rating);
+      setComment(userReview.comment);
+    }
+  }, [userReview]);
   
   const handleRatingChange = (value: number) => {
     setRating(value);
@@ -58,21 +71,28 @@ export default function ReviewScreen() {
     return isValid;
   };
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateInputs()) return;
-    
-    addReview(id as string, rating, comment);
-    
+
+    await submitReview(id as string, { rating, comment });
+
     Alert.alert(
-      "Reseña Enviada",
+      userReview ? "Reseña Actualizada" : "Reseña Enviada",
       "¡Gracias por tu reseña!",
       [
         {
           text: "OK",
-          onPress: () => router.back()
-        }
+          onPress: () => router.back(),
+        },
       ]
     );
+  };
+
+  const handleDeleteReview = async () => {
+    await deleteReview(id as string);
+    Alert.alert("Reseña eliminada", "Tu reseña fue eliminada", [
+      { text: "OK", onPress: () => router.back() },
+    ]);
   };
   
   const renderStars = () => {
@@ -148,18 +168,26 @@ export default function ReviewScreen() {
       </View>
       
       <View style={styles.actionButtons}>
-        <Button 
-          title="Cancelar" 
-          onPress={() => router.back()} 
-          variant="outline" 
+        <Button
+          title="Cancelar"
+          onPress={() => router.back()}
+          variant="outline"
           style={styles.cancelButton}
         />
-        
-        <Button 
-          title="Enviar Reseña" 
-          onPress={handleSubmit} 
+
+        <Button
+          title="Enviar Reseña"
+          onPress={handleSubmit}
           style={styles.submitButton}
         />
+        {userReview && (
+          <Button
+            title="Eliminar"
+            onPress={handleDeleteReview}
+            variant="danger"
+            style={styles.deleteButton}
+          />
+        )}
       </View>
     </ScrollView>
   );
@@ -262,6 +290,10 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   submitButton: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  deleteButton: {
     flex: 1,
     marginLeft: 8,
   },

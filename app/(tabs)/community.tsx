@@ -19,11 +19,12 @@ import { User } from "@/types";
 export default function CommunityScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { reviews, getTopUsers } = useCommunityStore();
+  const { reviews, getTopUsers, loadReviews } = useCommunityStore();
   const [topUsers, setTopUsers] = React.useState<User[]>([]);
 
   React.useEffect(() => {
     getTopUsers(5).then(setTopUsers);
+    loadReviews();
   }, []);
   const recentReviews = [...reviews]
     .sort(

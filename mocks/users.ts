@@ -93,63 +93,27 @@ export const reviews: Review[] = [
 
 export const userSupplements: UserSupplement[] = [
   {
-    id: "1",
-    supplementId: "1",
-    userId: "1",
-    schedule: [
-      {
-        id: "1-1",
-        time: "08:00",
-        dosage: 1,
-        days: [0, 1, 2, 3, 4, 5, 6]
-      }
-    ],
-    pillsRemaining: 45,
-    totalPills: 60,
-    lowStockThreshold: 10,
-    startDate: "2025-05-01T00:00:00Z",
-    adherenceRate: 92
+    id: '1',
+    name: 'Vitamina D3',
+    days: [0,1,2,3,4,5,6],
+    time: '08:00',
+    quantity: 60,
+    createdAt: '2025-05-01T00:00:00Z'
   },
   {
-    id: "2",
-    supplementId: "3",
-    userId: "1",
-    schedule: [
-      {
-        id: "2-1",
-        time: "22:00",
-        dosage: 2,
-        days: [0, 1, 2, 3, 4, 5, 6]
-      }
-    ],
-    pillsRemaining: 78,
-    totalPills: 120,
-    lowStockThreshold: 20,
-    startDate: "2025-05-05T00:00:00Z",
-    adherenceRate: 88
+    id: '2',
+    name: 'Magnesio',
+    days: [0,1,2,3,4,5,6],
+    time: '22:00',
+    quantity: 120,
+    createdAt: '2025-05-05T00:00:00Z'
   },
   {
-    id: "3",
-    supplementId: "5",
-    userId: "1",
-    schedule: [
-      {
-        id: "3-1",
-        time: "08:00",
-        dosage: 1,
-        days: [0, 1, 2, 3, 4, 5, 6]
-      },
-      {
-        id: "3-2",
-        time: "20:00",
-        dosage: 1,
-        days: [0, 1, 2, 3, 4, 5, 6]
-      }
-    ],
-    pillsRemaining: 42,
-    totalPills: 60,
-    lowStockThreshold: 10,
-    startDate: "2025-05-10T00:00:00Z",
-    adherenceRate: 95
+    id: '3',
+    name: 'Ashwagandha',
+    days: [0,1,2,3,4,5,6],
+    time: '20:00',
+    quantity: 60,
+    createdAt: '2025-05-10T00:00:00Z'
   }
 ];

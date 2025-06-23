@@ -25,14 +25,11 @@ export type Supplement = {
 
 export type UserSupplement = {
   id: string;
-  supplementId: string;
-  userId: string;
-  schedule: Schedule[];
-  pillsRemaining: number;
-  totalPills: number;
-  lowStockThreshold: number;
-  startDate: string;
-  adherenceRate: number; // 0-100%
+  name: string;
+  days: number[];
+  time: string;
+  quantity: number;
+  createdAt: string;
 };
 
 export type Schedule = {

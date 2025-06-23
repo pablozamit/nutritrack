@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "@/types";
 import { auth } from "@/lib/firebase";
+import { useSupplementStore } from "./supplement-store";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -43,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
             joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
           };
           set({ user, isAuthenticated: true, isLoading: false });
+          await useSupplementStore.getState().getUserSupplements(user.id);
         } catch (e: any) {
           set({ error: e.message, isLoading: false });
         }
@@ -64,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
             joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
           };
           set({ user, isAuthenticated: true, isLoading: false });
+          await useSupplementStore.getState().getUserSupplements(user.id);
         } catch (e: any) {
           set({ error: e.message, isLoading: false });
         }
@@ -71,9 +74,15 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         await signOut(auth);
         set({ user: null, isAuthenticated: false });
+        useSupplementStore.setState({ userSupplements: [] });
       },
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
+        if (user) {
+          useSupplementStore.getState().getUserSupplements(user.id);
+        } else {
+          useSupplementStore.setState({ userSupplements: [] });
+        }
       },
       updateUser: (userData) => {
         const currentUser = get().user;

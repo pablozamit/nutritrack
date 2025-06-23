@@ -16,14 +16,18 @@ import * as Notifications from "expo-notifications";
 import { db } from "@/lib/firestore";
 import { useAuthStore } from "./auth-store";
 import { usePointsStore } from "./points-store";
+import { useFeedStore } from "./feed-store";
 
 interface SupplementState {
   userSupplements: UserSupplement[];
   isLoading: boolean;
   error: string | null;
   notificationIds: Record<string, string[]>;
-  addSupplement: (supplement: Omit<UserSupplement, 'id'>) => Promise<void>;
-  updateSupplement: (id: string, data: Partial<UserSupplement>) => Promise<void>;
+  addSupplement: (supplement: Omit<UserSupplement, "id">) => Promise<void>;
+  updateSupplement: (
+    id: string,
+    data: Partial<UserSupplement>,
+  ) => Promise<void>;
   deleteSupplement: (id: string) => Promise<void>;
   getUserSupplements: (uid: string) => Promise<void>;
   subscribeToUserSupplements: (uid: string) => () => void;
@@ -32,7 +36,7 @@ interface SupplementState {
     id: string,
     name: string,
     time: string,
-    days: number[]
+    days: number[],
   ) => Promise<void>;
   cancelNotifications: (id: string) => Promise<void>;
 }
@@ -44,24 +48,39 @@ export const useSupplementStore = create<SupplementState>()(
       isLoading: false,
       error: null,
       notificationIds: {},
-      
 
       addSupplement: async (supplement) => {
         const user = useAuthStore.getState().user;
         if (!user) return;
-        const docRef = await addDoc(collection(db, `users/${user.id}/supplements`), {
-          ...supplement,
-          createdAt: new Date().toISOString(),
-          lastTakenAt: [],
-        });
+        const docRef = await addDoc(
+          collection(db, `users/${user.id}/supplements`),
+          {
+            ...supplement,
+            createdAt: new Date().toISOString(),
+            lastTakenAt: [],
+          },
+        );
         const id = docRef.id;
         set((state) => ({
           userSupplements: [
             ...state.userSupplements,
-            { ...supplement, id, createdAt: new Date().toISOString(), lastTakenAt: [] },
+            {
+              ...supplement,
+              id,
+              createdAt: new Date().toISOString(),
+              lastTakenAt: [],
+            },
           ],
         }));
-        await get().scheduleNotifications(id, supplement.name, supplement.time, supplement.days);
+        await get().scheduleNotifications(
+          id,
+          supplement.name,
+          supplement.time,
+          supplement.days,
+        );
+        await useFeedStore
+          .getState()
+          .addEntry("added", { supplementName: supplement.name });
       },
 
       deleteSupplement: async (id) => {
@@ -69,22 +88,28 @@ export const useSupplementStore = create<SupplementState>()(
         if (!user) return;
         await deleteDoc(doc(db, `users/${user.id}/supplements/${id}`));
         await get().cancelNotifications(id);
-        set(state => ({
-          userSupplements: state.userSupplements.filter(s => s.id !== id)
+        set((state) => ({
+          userSupplements: state.userSupplements.filter((s) => s.id !== id),
         }));
       },
 
       getUserSupplements: async (uid) => {
         const snap = await getDocs(collection(db, `users/${uid}/supplements`));
-        const data = snap.docs.map(d => ({ ...(d.data() as any), id: d.id }));
+        const data = snap.docs.map((d) => ({ ...(d.data() as any), id: d.id }));
         set({ userSupplements: data });
       },
 
       subscribeToUserSupplements: (uid) => {
-        const unsub = onSnapshot(collection(db, `users/${uid}/supplements`), (snap) => {
-          const data = snap.docs.map(d => ({ ...(d.data() as any), id: d.id }));
-          set({ userSupplements: data });
-        });
+        const unsub = onSnapshot(
+          collection(db, `users/${uid}/supplements`),
+          (snap) => {
+            const data = snap.docs.map((d) => ({
+              ...(d.data() as any),
+              id: d.id,
+            }));
+            set({ userSupplements: data });
+          },
+        );
         return unsub;
       },
 
@@ -99,7 +124,7 @@ export const useSupplementStore = create<SupplementState>()(
           userSupplements: state.userSupplements.map((s) =>
             s.id === id
               ? { ...s, lastTakenAt: [...(s.lastTakenAt || []), timestamp] }
-              : s
+              : s,
           ),
         }));
         await usePointsStore.getState().processDailyAdherence();
@@ -111,7 +136,7 @@ export const useSupplementStore = create<SupplementState>()(
         await updateDoc(doc(db, `users/${user.id}/supplements/${id}`), data);
         set((state) => ({
           userSupplements: state.userSupplements.map((s) =>
-            s.id === id ? { ...s, ...data } : s
+            s.id === id ? { ...s, ...data } : s,
           ),
         }));
         if (data.time || data.days || data.name) {
@@ -124,11 +149,22 @@ export const useSupplementStore = create<SupplementState>()(
         }
       },
 
-      scheduleNotifications: async (id: string, name: string, time: string, days: number[]) => {
+      scheduleNotifications: async (
+        id: string,
+        name: string,
+        time: string,
+        days: number[],
+      ) => {
         const [hour, minute] = time.split(":").map(Number);
         const notifIds: string[] = [];
         for (const d of days) {
-          const trigger: any = { type: 'calendar', hour, minute, weekday: d + 1, repeats: true };
+          const trigger: any = {
+            type: "calendar",
+            hour,
+            minute,
+            weekday: d + 1,
+            repeats: true,
+          };
           const nid = await Notifications.scheduleNotificationAsync({
             content: {
               title: "Es hora de tomar tu suplemento:",
@@ -159,7 +195,7 @@ export const useSupplementStore = create<SupplementState>()(
     }),
     {
       name: "supplement-storage",
-      storage: createJSONStorage(() => AsyncStorage)
-    }
-  )
+      storage: createJSONStorage(() => AsyncStorage),
+    },
+  ),
 );

@@ -15,13 +15,14 @@ import {
 } from "firebase/firestore";
 import { useAuthStore } from "./auth-store";
 import { usePointsStore } from "./points-store";
+import { useFeedStore } from "./feed-store";
 
 interface ReviewsState {
   reviews: Record<string, Review[]>;
   subscribeToReviews: (supplementId: string) => () => void;
   submitReview: (
     supplementId: string,
-    data: { rating: number; comment: string }
+    data: { rating: number; comment: string; supplementName?: string },
   ) => Promise<void>;
   deleteReview: (supplementId: string) => Promise<void>;
 }
@@ -32,7 +33,7 @@ export const useReviewsStore = create<ReviewsState>((set, get) => ({
   subscribeToReviews: (supplementId) => {
     const q = query(
       collection(db, `supplements/${supplementId}/reviews`),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
     );
     const unsub = onSnapshot(q, (snap) => {
       const list = snap.docs.map((d) => ({
@@ -60,7 +61,11 @@ export const useReviewsStore = create<ReviewsState>((set, get) => ({
         comment: data.comment,
         createdAt: new Date().toISOString(),
       });
-      await usePointsStore.getState().addPoints(10, 'review');
+      await usePointsStore.getState().addPoints(10, "review");
+      await useFeedStore.getState().addEntry("review", {
+        supplementName: data.supplementName,
+        rating: data.rating,
+      });
     } else {
       const id = snap.docs[0].id;
       await updateDoc(doc(db, `supplements/${supplementId}/reviews/${id}`), {

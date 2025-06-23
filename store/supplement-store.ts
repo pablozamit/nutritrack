@@ -12,7 +12,7 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
-import * as Notifications from "expo-notifications";
+import * as Notifications from "@/lib/notifications";
 import { db } from "@/lib/firestore";
 import { useAuthStore } from "./auth-store";
 import { usePointsStore } from "./points-store";

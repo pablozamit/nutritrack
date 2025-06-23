@@ -10,10 +10,13 @@ import {
   updateDoc,
   getDoc,
   increment,
+  collection,
   collectionGroup,
   getDocs,
   query,
   orderBy,
+  limit as limitDocs,
+  where,
 } from "firebase/firestore";
 import { User } from "@/types";
 
@@ -27,7 +30,8 @@ interface PointsState {
   addPoints: (value: number) => Promise<void>;
   processDailyAdherence: () => Promise<void>;
   fetchPoints: () => Promise<void>;
-  getRanking: () => Promise<User[]>;
+  getRanking: (limit?: number) => Promise<User[]>;
+  getUserRank: () => Promise<number | null>;
 }
 
 export const usePointsStore = create<PointsState>()(
@@ -84,20 +88,27 @@ export const usePointsStore = create<PointsState>()(
         set({ lastAdherenceDate: today });
       },
 
-      getRanking: async () => {
-        const q = query(collectionGroup(db, "meta"), orderBy("points", "desc"));
+      getRanking: async (limit = 10) => {
+        const q = query(
+          collection(db, "users"),
+          orderBy("points", "desc"),
+          limitDocs(limit)
+        );
         const snap = await getDocs(q);
-        const result: User[] = [];
-        for (const d of snap.docs) {
-          const uid = d.ref.parent.parent?.id;
-          if (!uid) continue;
-          const userDoc = await getDoc(doc(db, "users", uid));
-          if (userDoc.exists()) {
-            result.push({ ...(userDoc.data() as User), id: uid, points: d.data().points || 0 });
-          }
-        }
-        result.sort((a, b) => b.points - a.points);
-        return result;
+        return snap.docs.map((d) => ({ ...(d.data() as User), id: d.id }));
+      },
+
+      getUserRank: async () => {
+        const current = useAuthStore.getState().user;
+        if (!current) return null;
+        const userSnap = await getDoc(doc(db, "users", current.id));
+        const points = userSnap.exists() ? userSnap.data()?.points || 0 : 0;
+        const higherQ = query(
+          collection(db, "users"),
+          where("points", ">", points)
+        );
+        const higherSnap = await getDocs(higherQ);
+        return higherSnap.size + 1;
       },
     }),
     {

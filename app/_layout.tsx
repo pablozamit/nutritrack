@@ -4,6 +4,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import * as Notifications from "@/lib/notifications";
+import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -49,7 +50,9 @@ export default function RootLayout() {
         }
       }
       // Attempt to register for push notifications if supported.
-      await Notifications.registerForPushNotificationsAsync();
+      if (Constants.appOwnership !== "expo") {
+        await Notifications.registerForPushNotificationsAsync();
+      }
     }
     requestPermission();
   }, []);

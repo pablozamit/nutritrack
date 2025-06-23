@@ -2,7 +2,13 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { User } from "@/types";
-import { users } from "@/mocks/users";
+import { auth } from "@/lib/firebase";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
 
 interface AuthState {
   user: User | null;
@@ -12,6 +18,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  setUser: (user: User | null) => void;
   updateUser: (userData: Partial<User>) => void;
 }
 
@@ -25,54 +32,48 @@ export const useAuthStore = create<AuthState>()(
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          // Simular llamada a API
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Buscar usuario en datos simulados
-          const user = users.find(u => u.email === email);
-          
-          if (user) {
-            set({ user, isAuthenticated: true, isLoading: false });
-          } else {
-            set({ error: "Credenciales inválidas", isLoading: false });
-          }
-        } catch (error) {
-          set({ error: "Error al iniciar sesión", isLoading: false });
+          const cred = await signInWithEmailAndPassword(auth, email, password);
+          const fbUser = cred.user;
+          const user: User = {
+            id: fbUser.uid,
+            username: fbUser.displayName || email,
+            email: fbUser.email || email,
+            points: 0,
+            streak: 0,
+            joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
+          };
+          set({ user, isAuthenticated: true, isLoading: false });
+        } catch (e: any) {
+          set({ error: e.message, isLoading: false });
         }
       },
       register: async (username, email, password) => {
         set({ isLoading: true, error: null });
         try {
-          // Simular llamada a API
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Comprobar si el usuario ya existe
-          const existingUser = users.find(u => u.email === email);
-          
-          if (existingUser) {
-            set({ error: "El usuario ya existe", isLoading: false });
-            return;
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          if (auth.currentUser) {
+            await updateProfile(auth.currentUser, { displayName: username });
           }
-          
-          // Crear nuevo usuario
-          const newUser: User = {
-            id: String(users.length + 1),
+          const fbUser = cred.user;
+          const user: User = {
+            id: fbUser.uid,
             username,
-            email,
+            email: fbUser.email || email,
             points: 0,
             streak: 0,
-            joinedAt: new Date().toISOString()
+            joinedAt: fbUser.metadata.creationTime || new Date().toISOString(),
           };
-          
-          // En una aplicación real, guardaríamos en el backend
-          // Para la simulación, solo establecemos el estado
-          set({ user: newUser, isAuthenticated: true, isLoading: false });
-        } catch (error) {
-          set({ error: "Error al registrarse", isLoading: false });
+          set({ user, isAuthenticated: true, isLoading: false });
+        } catch (e: any) {
+          set({ error: e.message, isLoading: false });
         }
       },
-      logout: () => {
+      logout: async () => {
+        await signOut(auth);
         set({ user: null, isAuthenticated: false });
+      },
+      setUser: (user) => {
+        set({ user, isAuthenticated: !!user });
       },
       updateUser: (userData) => {
         const currentUser = get().user;

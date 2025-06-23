@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthStore } from "./auth-store";
 import { useSupplementStore } from "./supplement-store";
+import { useFeedStore } from "./feed-store";
 import { db } from "@/lib/firestore";
 import {
   doc,
@@ -41,7 +42,7 @@ export const usePointsStore = create<PointsState>()(
       points: 0,
       lastAdherenceDate: null,
 
-      addPoints: async (value, reason = 'other') => {
+      addPoints: async (value, reason = "other") => {
         const user = useAuthStore.getState().user;
         if (!user) return;
         const metaRef = doc(db, `users/${user.id}/meta`);
@@ -82,14 +83,19 @@ export const usePointsStore = create<PointsState>()(
         });
         if (!allTaken) return;
 
-        await get().addPoints(10, 'daily');
+        await get().addPoints(10, "daily");
         const yesterday = formatDate(new Date(Date.now() - 86400000));
         const currentStreak =
           get().lastAdherenceDate === yesterday ? (user.streak || 0) + 1 : 1;
         useAuthStore.getState().updateUser({ streak: currentStreak });
         await updateDoc(doc(db, "users", user.id), { streak: currentStreak });
         if (currentStreak % 3 === 0) {
-          await get().addPoints(5, 'streak');
+          await get().addPoints(5, "streak");
+        }
+        if (currentStreak >= 7 && currentStreak % 7 === 0) {
+          await useFeedStore
+            .getState()
+            .addEntry("ranking", { racha: currentStreak });
         }
         set({ lastAdherenceDate: today });
       },
@@ -98,7 +104,7 @@ export const usePointsStore = create<PointsState>()(
         const q = query(
           collection(db, "users"),
           orderBy("points", "desc"),
-          limitDocs(limit)
+          limitDocs(limit),
         );
         const snap = await getDocs(q);
         return snap.docs.map((d) => ({ ...(d.data() as User), id: d.id }));
@@ -111,7 +117,7 @@ export const usePointsStore = create<PointsState>()(
         const points = userSnap.exists() ? userSnap.data()?.points || 0 : 0;
         const higherQ = query(
           collection(db, "users"),
-          where("points", ">", points)
+          where("points", ">", points),
         );
         const higherSnap = await getDocs(higherQ);
         return higherSnap.size + 1;
@@ -120,6 +126,6 @@ export const usePointsStore = create<PointsState>()(
     {
       name: "points-storage",
       storage: createJSONStorage(() => AsyncStorage),
-    }
-  )
+    },
+  ),
 );

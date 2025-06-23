@@ -1,11 +1,11 @@
 import React from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
-  Image
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Award, MessageCircle, TrendingUp } from "lucide-react-native";
@@ -28,7 +28,8 @@ export default function CommunityScreen() {
   }, []);
   const recentReviews = [...reviews]
     .sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
     .slice(0, 5);
 
@@ -38,19 +39,24 @@ export default function CommunityScreen() {
     if (idx === -1) return null;
     return idx + 1;
   }, [topUsers, user]);
-  
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Comunidad</Text>
       </View>
-      
+
       {user && (
         <View style={styles.userStatsCard}>
           <View style={styles.userStatsHeader}>
-            <Image 
-              source={{ uri: `https://ui-avatars.com/api/?name=${user.username}&background=random&size=100` }} 
-              style={styles.userAvatar} 
+            <Image
+              source={{
+                uri: `https://ui-avatars.com/api/?name=${user.username}&background=random&size=100`,
+              }}
+              style={styles.userAvatar}
             />
             <View style={styles.userInfo}>
               <Text style={styles.username}>{user.username}</Text>
@@ -59,22 +65,22 @@ export default function CommunityScreen() {
               </Text>
             </View>
           </View>
-          
+
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{user.points}</Text>
               <Text style={styles.statLabel}>Puntos</Text>
             </View>
-            
+
             <View style={styles.statDivider} />
-            
+
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{user.streak}</Text>
               <Text style={styles.statLabel}>Racha</Text>
             </View>
-            
+
             <View style={styles.statDivider} />
-            
+
             <View style={styles.statItem}>
               <Text style={styles.statValue}>
                 {currentUserRank ? `#${currentUserRank}` : "-"}
@@ -84,72 +90,72 @@ export default function CommunityScreen() {
           </View>
         </View>
       )}
-      
+
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleContainer}>
           <Award size={20} color={colors.primary} />
           <Text style={styles.sectionTitle}>Clasificación</Text>
         </View>
-        
+
         <TouchableOpacity onPress={() => router.push("/ranking")}>
           <Text style={styles.seeAllText}>Ver Todo</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.leaderboardContainer}>
         {topUsers.map((topUser, index) => (
-          <UserRankItem 
-            key={topUser.id} 
-            user={topUser} 
-            rank={index + 1} 
+          <UserRankItem
+            key={topUser.id}
+            user={topUser}
+            rank={index + 1}
             isCurrentUser={user?.id === topUser.id}
           />
         ))}
       </View>
-      
+
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleContainer}>
           <MessageCircle size={20} color={colors.primary} />
           <Text style={styles.sectionTitle}>Reseñas Recientes</Text>
         </View>
-        
-        <TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push("/CommunityFeed")}>
           <Text style={styles.seeAllText}>Ver Todo</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.reviewsContainer}>
         {recentReviews.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>Aún no hay reseñas</Text>
           </View>
         ) : (
-          recentReviews.map(review => (
+          recentReviews.map((review) => (
             <ReviewItem key={review.id} review={review} />
           ))
         )}
       </View>
-      
+
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleContainer}>
           <TrendingUp size={20} color={colors.primary} />
           <Text style={styles.sectionTitle}>Suplementos Populares</Text>
         </View>
       </View>
-      
+
       <View style={styles.trendingContainer}>
         <View style={styles.trendingItem}>
           <Text style={styles.trendingRank}>#1</Text>
           <Text style={styles.trendingName}>Vitamina D3</Text>
           <Text style={styles.trendingUsers}>128 usuarios</Text>
         </View>
-        
+
         <View style={styles.trendingItem}>
           <Text style={styles.trendingRank}>#2</Text>
           <Text style={styles.trendingName}>Magnesio Glicinato</Text>
           <Text style={styles.trendingUsers}>96 usuarios</Text>
         </View>
-        
+
         <View style={styles.trendingItem}>
           <Text style={styles.trendingRank}>#3</Text>
           <Text style={styles.trendingName}>Ashwagandha</Text>

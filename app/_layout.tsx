@@ -40,11 +40,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     async function requestPermission() {
-      const asked = await AsyncStorage.getItem('notification_permission');
+      const asked = await AsyncStorage.getItem("notification_permission");
       if (!asked) {
-        await AsyncStorage.setItem('notification_permission', '1');
+        await AsyncStorage.setItem("notification_permission", "1");
         const { status } = await Notifications.getPermissionsAsync();
-        if (status !== 'granted') {
+        if (status !== "granted") {
           await Notifications.requestPermissionsAsync();
         }
       }
@@ -79,83 +79,90 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          <Stack.Screen 
-            name="auth/login" 
-            options={{ 
+          <Stack.Screen
+            name="auth/login"
+            options={{
               title: "Iniciar Sesión",
               headerShown: true,
-              presentation: "card"
-            }} 
+              presentation: "card",
+            }}
           />
-          <Stack.Screen 
-            name="auth/register" 
-            options={{ 
+          <Stack.Screen
+            name="auth/register"
+            options={{
               title: "Crear Cuenta",
               headerShown: true,
-              presentation: "card"
-            }} 
+              presentation: "card",
+            }}
           />
-          <Stack.Screen 
-            name="supplement/[id]" 
-            options={{ 
+          <Stack.Screen
+            name="supplement/[id]"
+            options={{
               title: "Detalles del Suplemento",
-              headerShown: true
-            }} 
+              headerShown: true,
+            }}
           />
           <Stack.Screen
             name="supplement/add"
             options={{
               title: "Añadir Suplemento",
-              headerShown: true
+              headerShown: true,
             }}
           />
           <Stack.Screen
             name="supplement/edit"
             options={{
               title: "Editar Suplemento",
-              headerShown: true
+              headerShown: true,
             }}
           />
-          <Stack.Screen 
-            name="supplement/schedule" 
-            options={{ 
+          <Stack.Screen
+            name="supplement/schedule"
+            options={{
               title: "Programación",
-              headerShown: true
-            }} 
+              headerShown: true,
+            }}
           />
-          <Stack.Screen 
-            name="supplement/review" 
-            options={{ 
+          <Stack.Screen
+            name="supplement/review"
+            options={{
               title: "Escribir Reseña",
-              headerShown: true
-            }} 
+              headerShown: true,
+            }}
           />
           <Stack.Screen
             name="supplement/replenish"
             options={{
               title: "Reponer Suplemento",
-              headerShown: true
+              headerShown: true,
             }}
           />
           <Stack.Screen
             name="ranking"
             options={{
               title: "Ranking",
-              headerShown: true
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name="CommunityFeed"
+            options={{
+              title: "Feed",
+              headerShown: true,
             }}
           />
           <Stack.Screen
             name="resumen"
             options={{
               title: "Resumen",
-              headerShown: true
+              headerShown: true,
             }}
           />
           <Stack.Screen
             name="admin-panel"
             options={{
               title: "Admin",
-              headerShown: true
+              headerShown: true,
             }}
           />
         </Stack>

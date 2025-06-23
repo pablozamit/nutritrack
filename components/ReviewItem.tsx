@@ -36,7 +36,7 @@ export default function ReviewItem({ review }: ReviewItemProps) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.username}>{review.username}</Text>
+        <Text style={styles.username}>{review.userName || "Anon"}</Text>
         <Text style={styles.date}>{formatDate(review.createdAt)}</Text>
       </View>
       

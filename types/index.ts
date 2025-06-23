@@ -50,12 +50,12 @@ export type Intake = {
 
 export type Review = {
   id: string;
-  userId: string;
+  uid: string;
+  userName?: string;
   supplementId: string;
   rating: number;
   comment: string;
   createdAt: string;
-  username: string;
 };
 
 export type Symptom = {

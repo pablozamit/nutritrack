@@ -46,48 +46,48 @@ export const users: User[] = [
 export const reviews: Review[] = [
   {
     id: "1",
-    userId: "3",
+    uid: "3",
     supplementId: "1",
     rating: 5,
     comment: "Noté una gran diferencia en mis niveles de energía después de un mes tomándolo.",
     createdAt: "2025-05-15T14:30:00Z",
-    username: "viajerodevitaminas"
+    userName: "viajerodevitaminas"
   },
   {
     id: "2",
-    userId: "1",
+    uid: "1",
     supplementId: "2",
     rating: 4,
     comment: "Buena calidad, pero las píldoras son un poco grandes para tragar.",
     createdAt: "2025-05-10T09:15:00Z",
-    username: "saludbuscador"
+    userName: "saludbuscador"
   },
   {
     id: "3",
-    userId: "4",
+    uid: "4",
     supplementId: "3",
     rating: 5,
     comment: "El mejor magnesio que he probado. Realmente ayuda con la calidad del sueño.",
     createdAt: "2025-05-05T22:45:00Z",
-    username: "sabiosuplementos"
+    userName: "sabiosuplementos"
   },
   {
     id: "4",
-    userId: "2",
+    uid: "2",
     supplementId: "5",
     rating: 4,
     comment: "Definitivamente me siento más tranquilo después de tomarlo durante unas semanas.",
     createdAt: "2025-05-18T16:20:00Z",
-    username: "guerrerobienestar"
+    userName: "guerrerobienestar"
   },
   {
     id: "5",
-    userId: "5",
+    uid: "5",
     supplementId: "6",
     rating: 5,
     comment: "Mejora notable en mi rendimiento durante el entrenamiento.",
     createdAt: "2025-05-20T11:10:00Z",
-    username: "ninjanutricional"
+    userName: "ninjanutricional"
   }
 ];
 

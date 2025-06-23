@@ -69,3 +69,5 @@ export type Goal = {
   name: string;
   supplements: string[]; // Array de IDs de suplementos
 };
+
+export type RecommendedSupplement = Supplement & { reason: string };

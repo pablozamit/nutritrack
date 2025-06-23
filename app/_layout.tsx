@@ -121,6 +121,13 @@ function RootLayoutNav() {
               headerShown: true
             }}
           />
+          <Stack.Screen
+            name="admin-panel"
+            options={{
+              title: "Admin",
+              headerShown: true
+            }}
+          />
         </Stack>
       </QueryClientProvider>
     </trpc.Provider>

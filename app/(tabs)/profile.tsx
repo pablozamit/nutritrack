@@ -137,7 +137,14 @@ export default function ProfileScreen() {
           <Award size={20} color={colors.primary} />
           <Text style={styles.menuItemText}>Logros</Text>
         </TouchableOpacity>
-        
+
+        {user?.id === 'admin-uid-placeholder' && (
+          <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin-panel')}>
+            <Shield size={20} color={colors.primary} />
+            <Text style={styles.menuItemText}>Panel Admin</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity style={styles.menuItem}>
           <Shield size={20} color={colors.primary} />
           <Text style={styles.menuItemText}>Privacidad</Text>

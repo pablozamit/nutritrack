@@ -10,6 +10,8 @@ import {
 import { useRouter } from "expo-router";
 import { Award, MessageCircle, TrendingUp } from "lucide-react-native";
 import { useCommunityStore } from "@/store/community-store";
+import { collectionGroup, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firestore";
 import { useAuthStore } from "@/store/auth-store";
 import { colors } from "@/constants/colors";
 import UserRankItem from "@/components/UserRankItem";
@@ -21,10 +23,25 @@ export default function CommunityScreen() {
   const { user } = useAuthStore();
   const { reviews, getTopUsers, loadReviews } = useCommunityStore();
   const [topUsers, setTopUsers] = React.useState<User[]>([]);
+  const [trending, setTrending] = React.useState<{ name: string; count: number }[]>([]);
 
   React.useEffect(() => {
     getTopUsers(5).then(setTopUsers);
     loadReviews();
+    (async () => {
+      const snap = await getDocs(collectionGroup(db, "supplements"));
+      const counts: Record<string, number> = {};
+      snap.docs.forEach((d) => {
+        const name = (d.data() as any)?.name;
+        if (!name) return;
+        counts[name] = (counts[name] || 0) + 1;
+      });
+      const list = Object.entries(counts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3);
+      setTrending(list);
+    })();
   }, []);
   const recentReviews = [...reviews]
     .sort(
@@ -144,23 +161,21 @@ export default function CommunityScreen() {
       </View>
 
       <View style={styles.trendingContainer}>
-        <View style={styles.trendingItem}>
-          <Text style={styles.trendingRank}>#1</Text>
-          <Text style={styles.trendingName}>Vitamina D3</Text>
-          <Text style={styles.trendingUsers}>128 usuarios</Text>
-        </View>
-
-        <View style={styles.trendingItem}>
-          <Text style={styles.trendingRank}>#2</Text>
-          <Text style={styles.trendingName}>Magnesio Glicinato</Text>
-          <Text style={styles.trendingUsers}>96 usuarios</Text>
-        </View>
-
-        <View style={styles.trendingItem}>
-          <Text style={styles.trendingRank}>#3</Text>
-          <Text style={styles.trendingName}>Ashwagandha</Text>
-          <Text style={styles.trendingUsers}>87 usuarios</Text>
-        </View>
+        {trending.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>Sin datos</Text>
+          </View>
+        ) : (
+          trending.map((item, idx) => (
+            <View key={item.name} style={styles.trendingItem}>
+              <Text style={styles.trendingRank}>#{idx + 1}</Text>
+              <Text style={styles.trendingName}>{item.name}</Text>
+              <Text style={styles.trendingUsers}>
+                {item.count} usuario{item.count !== 1 ? "s" : ""}
+              </Text>
+            </View>
+          ))
+        )}
       </View>
     </ScrollView>
   );

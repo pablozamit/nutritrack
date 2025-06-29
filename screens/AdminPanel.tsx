@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useCatalogStore } from '@/store/catalog-store';
 import { CatalogSupplement } from '@/types';
 
-const ADMIN_UID = 'admin-uid-placeholder';
+const ADMIN_UID = process.env.EXPO_PUBLIC_ADMIN_UID ?? 'admin-uid-placeholder';
 
 export default function AdminPanel() {
   const router = useRouter();

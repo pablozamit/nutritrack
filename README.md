@@ -38,7 +38,10 @@ EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=tuBucket.appspot.com
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=1234567890
 EXPO_PUBLIC_FIREBASE_APP_ID=1:1234567890:web:abcdef
 EXPO_PUBLIC_OPENAI_KEY=sk-xxxx # o OPENAI_API_KEY
+EXPO_PUBLIC_ADMIN_UID=tuUidDeAdmin
 ```
+
+`EXPO_PUBLIC_ADMIN_UID` debe contener el UID de Firebase del usuario que tendrá acceso al panel de administración.
 
 ### Backend (Hono + tRPC)
 
